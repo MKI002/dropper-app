@@ -1,0 +1,18 @@
+services:
+  dropper:
+    build: .
+    image: dropper:latest
+    container_name: Dropper
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      TZ: Europe/Berlin
+      PUID: 1000
+      PGID: 1000
+      # Optional: WebUI per Passwort schützen
+      # WEBUI_USER: admin
+      # WEBUI_PASSWORD: geheim
+      # LOG_LEVEL: INFO

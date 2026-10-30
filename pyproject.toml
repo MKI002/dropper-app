@@ -1,0 +1,9 @@
+[project]
+name = "dropper"
+version = "2.5.0"
+description = "Twitch drops farmer with web UI"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

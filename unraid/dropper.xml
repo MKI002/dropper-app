@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Dropper</Name>
+  <Repository>ghcr.io/mki002/dropper-app:latest</Repository>
+  <Registry>https://github.com/MKI002/dropper-app/pkgs/container/dropper-app</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/MKI002/dropper-app</Support>
+  <Project>https://github.com/MKI002/dropper-app</Project>
+  <Overview>Farmt Twitch-Drops automatisch: findet Channels mit aktiven Drops, schaut sie im Hintergrund und holt fertige Drops zuverlässig ab. Steuerung und Statistiken im WebUI. Beim ersten Start im WebUI den Code auf twitch.tv/activate eingeben.</Overview>
+  <Category>Tools: Status:Stable</Category>
+  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/MKI002/dropper-app/main/unraid/dropper.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/MKI002/dropper-app/main/unraid/icon.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <Requires/>
+  <Config Name="WebUI Port" Target="8080" Default="8080" Mode="tcp" Description="Port des WebUI" Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Daten" Target="/data" Default="/mnt/user/appdata/dropper" Mode="rw" Description="Login, Einstellungen und Statistik" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/dropper</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User-ID (Unraid: 99 = nobody)" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Gruppen-ID (Unraid: 100 = users)" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="TZ" Target="TZ" Default="Europe/Berlin" Mode="" Description="Zeitzone" Type="Variable" Display="advanced" Required="false" Mask="false">Europe/Berlin</Config>
+  <Config Name="WebUI-Passwort" Target="WEBUI_PASSWORD" Default="" Mode="" Description="Optional: schützt das WebUI (Benutzer: admin)" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+</Container>

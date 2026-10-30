@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <title>Dropper · Twitch drops on autopilot</title>
+  <meta name="description" content="Dropper is a self-hosted Docker container that finds Twitch streams with active drops, watches them in the background and claims every finished drop. Try the live demo.">
+  <meta property="og:title" content="Dropper · Twitch drops on autopilot">
+  <meta property="og:description" content="Self-hosted drop farming with a clean web UI. Finds channels, watches in the background, claims every drop.">
+  <meta property="og:image" content="assets/overview.png">
+  <link rel="icon" type="image/svg+xml" href="demo/static/img/logo.svg">
+  <link rel="preload" href="demo/static/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face { font-family: "Inter Variable"; font-weight: 100 900; font-display: swap; src: url(demo/static/fonts/inter-latin-wght-normal.woff2) format("woff2-variations"); }
+    :root {
+      color-scheme: dark;
+      --bg: #000; --surface: #1c1c1e; --surface-2: #2c2c2e; --sep: rgba(84, 84, 88, .5);
+      --text: #f5f5f7; --text-2: rgba(235, 235, 245, .62); --text-3: rgba(235, 235, 245, .34);
+      --accent: #9a5cff; --accent-hover: #a874ff; --accent-text: #b38cff; --accent-tint: rgba(154, 92, 255, .18);
+      --green: #30d158; --red: #ff453a; --blue: #0a84ff; --orange: #ff9f0a; --teal: #64d2ff;
+      --spring: cubic-bezier(.3, 1.3, .6, 1); --ease: cubic-bezier(.25, .1, .25, 1);
+      --font: -apple-system, BlinkMacSystemFont, "Inter Variable", "Segoe UI", Roboto, sans-serif;
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      --gutter: 16px;
+    }
+    @media (min-width: 700px) { :root { --gutter: 32px; } }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent-text); text-decoration: none; }
+    a:hover { color: var(--text); }
+    img { max-width: 100%; display: block; }
+    .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 var(--gutter); }
+
+    header.top { position: sticky; top: 0; z-index: 10; background: rgba(0, 0, 0, .78); backdrop-filter: saturate(180%) blur(18px); -webkit-backdrop-filter: saturate(180%) blur(18px); border-bottom: 1px solid var(--sep); }
+    header.top .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+    .brand { display: flex; align-items: center; gap: 9px; color: var(--text); font-weight: 650; font-size: 17px; letter-spacing: -.02em; }
+    .brand svg { width: 26px; height: 26px; }
+    header nav { display: flex; gap: 22px; margin-left: auto; font-size: 14px; }
+    header nav a { color: var(--text-2); }
+    header nav a:hover { color: var(--text); }
+    @media (max-width: 640px) { header nav a.hide-sm { display: none; } }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 22px; border-radius: 999px; background: var(--surface-2); color: var(--text); font-weight: 600; font-size: 15px; transition: transform .25s var(--spring), background .2s var(--ease); }
+    .btn:hover { color: var(--text); transform: translateY(-1px); background: #3a3a3c; }
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn svg { width: 18px; height: 18px; }
+
+    .hero { padding: 72px 0 40px; text-align: center; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 999px; background: var(--surface); color: var(--text-2); font-size: 13px; font-weight: 500; }
+    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .35; } }
+    h1 { margin: 22px auto 16px; max-width: 820px; font-size: clamp(38px, 7vw, 68px); line-height: 1.04; letter-spacing: -.035em; font-weight: 750; }
+    h1 em { font-style: normal; color: var(--accent-text); }
+    .lead { max-width: 640px; margin: 0 auto; color: var(--text-2); font-size: clamp(17px, 2.2vw, 20px); }
+    .cta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+
+    .stage { margin-top: 48px; }
+    .frame { position: relative; border-radius: 18px; overflow: hidden; background: var(--surface); border: 1px solid var(--sep); }
+    .frame .bar { display: flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-bottom: 1px solid var(--sep); }
+    .frame .bar i { width: 11px; height: 11px; border-radius: 50%; background: var(--surface-2); }
+    .frame .bar span { margin-left: 10px; color: var(--text-3); font: 12px var(--mono); }
+    .frame .bar a { margin-left: auto; font-size: 13px; font-weight: 600; }
+    .frame iframe { display: block; width: 100%; height: 760px; border: 0; background: #000; }
+    @media (max-width: 760px) { .frame iframe { height: 640px; } }
+    .caption { margin: 14px 0 0; color: var(--text-3); font-size: 13px; text-align: center; }
+
+    section { padding: 80px 0 0; }
+    h2 { margin: 0 0 10px; font-size: clamp(28px, 4.4vw, 42px); line-height: 1.1; letter-spacing: -.03em; font-weight: 720; }
+    .sub { margin: 0 0 36px; max-width: 640px; color: var(--text-2); font-size: 17px; }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+    .card { padding: 24px; border-radius: 18px; background: var(--surface); }
+    .card h3 { margin: 14px 0 6px; font-size: 18px; letter-spacing: -.01em; }
+    .card p { margin: 0; color: var(--text-2); font-size: 15px; }
+    .ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; background: var(--accent-tint); color: var(--accent-text); }
+    .ico svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ico.green { background: rgba(48, 209, 88, .16); color: var(--green); }
+    .ico.blue { background: rgba(10, 132, 255, .18); color: #4aa3ff; }
+    .ico.orange { background: rgba(255, 159, 10, .16); color: var(--orange); }
+    .ico.teal { background: rgba(100, 210, 255, .14); color: var(--teal); }
+    .ico.red { background: rgba(255, 69, 58, .16); color: var(--red); }
+
+    .shots { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
+    .shot { margin: 0; border-radius: 16px; overflow: hidden; background: var(--surface); }
+    .shot img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top left; }
+    .shot figcaption { padding: 14px 18px 16px; color: var(--text-2); font-size: 14px; }
+    .shot figcaption b { display: block; color: var(--text); font-size: 15px; }
+
+    .steps { counter-reset: s; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+    .step { padding: 24px; border-radius: 18px; background: var(--surface); }
+    .step::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; }
+    .step h3 { margin: 14px 0 6px; font-size: 18px; }
+    .step p { margin: 0; color: var(--text-2); font-size: 15px; }
+
+    .tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; background: var(--surface); margin-bottom: 12px; }
+    .tabs button { height: 34px; padding: 0 16px; border: 0; border-radius: 9px; background: none; color: var(--text-2); font: 600 14px var(--font); cursor: pointer; transition: background .2s var(--ease), color .2s var(--ease); }
+    .tabs button[aria-selected="true"] { background: var(--surface-2); color: var(--text); }
+    pre { margin: 0; padding: 20px 22px; border-radius: 16px; background: var(--surface); color: #e5e5ea; font: 14px/1.7 var(--mono); overflow-x: auto; }
+    pre .c { color: var(--text-3); }
+    .panel[hidden] { display: none; }
+    .note { margin: 14px 0 0; color: var(--text-2); font-size: 15px; }
+
+    .faq { display: grid; gap: 10px; }
+    details { border-radius: 14px; background: var(--surface); }
+    summary { list-style: none; cursor: pointer; padding: 18px 22px; font-weight: 600; display: flex; justify-content: space-between; gap: 16px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; color: var(--text-3); font-weight: 400; font-size: 22px; line-height: 1; transition: transform .3s var(--spring); }
+    details[open] summary::after { transform: rotate(45deg); }
+    details p { margin: 0; padding: 0 22px 20px; color: var(--text-2); font-size: 15px; }
+
+    footer { margin-top: 96px; padding: 32px 0 48px; border-top: 1px solid var(--sep); color: var(--text-3); font-size: 13px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
+    footer a { color: var(--text-2); }
+
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="logo" viewBox="0 0 48 48">
+        <path d="M24 5.5c6.4 8.6 13.5 15 13.5 23.4a13.5 13.5 0 0 1-27 0c0-8.4 7.1-14.8 13.5-23.4z" fill="#9a5cff"/>
+        <path d="M17.6 30.7a7 7 0 0 0 6.9 6.8" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="2.8" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="gh" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.2-3.1-.1-.4-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.6 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.2.8.8 1.2 1.9 1.2 3.1 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/></symbol>
+    </defs>
+  </svg>
+
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><svg aria-hidden="true"><use href="#logo"/></svg>Dropper</a>
+      <nav>
+        <a class="hide-sm" href="#features">Features</a>
+        <a class="hide-sm" href="#install">Install</a>
+        <a href="demo/">Demo</a>
+        <a href="https://github.com/MKI002/dropper-app">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <span class="pill"><span class="dot"></span>Self-hosted · Docker · 12 languages</span>
+      <h1>Twitch drops, <em>on autopilot.</em></h1>
+      <p class="lead">Dropper finds the streams that have drops right now, watches them in the background and claims every reward the moment it is ready. You get a clean web UI to steer it.</p>
+      <div class="cta">
+        <a class="btn primary" href="demo/">Open the live demo</a>
+        <a class="btn" href="https://github.com/MKI002/dropper-app"><svg aria-hidden="true"><use href="#gh"/></svg>View on GitHub</a>
+      </div>
+
+      <div class="stage">
+        <div class="frame">
+          <div class="bar"><i></i><i></i><i></i><span>dropper.local:8080</span><a href="demo/">Full screen</a></div>
+          <iframe src="demo/#overview" title="Dropper live demo" loading="lazy"></iframe>
+        </div>
+        <p class="caption">This is the real web UI, running on simulated data in your browser. The games and streamers are made up, and time runs fast so you can watch drops fill up and get claimed.</p>
+      </div>
+    </div>
+
+    <section id="features">
+      <div class="wrap">
+        <h2>Set it up once. Stop missing drops.</h2>
+        <p class="sub">Everything the old config file did now lives in the web UI and applies right away, without a restart.</p>
+        <div class="grid">
+          <div class="card"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+            <h3>Finds the channels for you</h3><p>Knows every running campaign, searches the game directory for streams with drops enabled and asks each channel which campaigns it really serves.</p></div>
+          <div class="card"><span class="ico green"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <h3>Claims reliably</h3><p>Four independent ways to claim: real-time events, a per-minute progress check, an inventory sweep every five minutes and retries with a fallback claim ID.</p></div>
+          <div class="card"><span class="ico blue"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg></span>
+            <h3>Switches on its own</h3><p>When a stream ends, changes games or stops giving progress, Dropper moves to the next channel and tells you why it picked it.</p></div>
+          <div class="card"><span class="ico orange"><svg viewBox="0 0 24 24"><path d="M12 2 15.1 8.3 22 9.3l-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg></span>
+            <h3>Your priorities first</h3><p>Order games by priority, watch for games that have no campaign yet, exclude what you don't care about, prefer or block channels.</p></div>
+          <div class="card"><span class="ico teal"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+            <h3>Discord notifications</h3><p>Hear about claimed drops, failed claims, finished campaigns and new drops for games you watch, with your own sender name and picture.</p></div>
+          <div class="card"><span class="ico red"><svg viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <h3>No password needed</h3><p>You log in like on a TV: confirm a code on twitch.tv/activate. The session and all your data stay in your own data folder.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tour">
+      <div class="wrap">
+        <h2>A tour of the web UI</h2>
+        <p class="sub">Dark, calm and quick, on a big screen or your phone. Try every screen in the <a href="demo/">demo</a>.</p>
+        <div class="shots">
+          <figure class="shot"><a href="demo/#overview"><img src="assets/overview.png" alt="Overview: the stream being watched, the current drop and the campaign queue" loading="lazy"></a><figcaption><b>Overview</b>What is being watched, why that channel, and how close the next drop is.</figcaption></figure>
+          <figure class="shot"><a href="demo/#campaigns"><img src="assets/campaigns.png" alt="Campaigns with filters and per-drop progress" loading="lazy"></a><figcaption><b>Campaigns</b>Every campaign with its drops, queue position and the reason when one is skipped.</figcaption></figure>
+          <figure class="shot"><a href="demo/#channels"><img src="assets/channels.png" alt="Live channels with their drop campaigns" loading="lazy"></a><figcaption><b>Channels</b>Live channels with drops. Watch one by hand, prefer it or block it.</figcaption></figure>
+          <figure class="shot"><a href="demo/#stats"><img src="assets/stats.png" alt="Statistics: watch time per day, game and channel" loading="lazy"></a><figcaption><b>Statistics</b>Watch time per day, game and channel, claims and channel points.</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p class="sub">Dropper watches the way a TV app does, without downloading video, and one stream at a time, because that is how Twitch counts drop progress.</p>
+        <div class="steps">
+          <div class="step"><h3>Start the container</h3><p>One Docker container with the web UI on port 8080. Images for amd64 and arm64 are on the GitHub Container Registry.</p></div>
+          <div class="step"><h3>Enter the code</h3><p>Open the web UI and type the eight-character code on twitch.tv/activate. That's the whole login.</p></div>
+          <div class="step"><h3>Lean back</h3><p>Dropper picks campaigns by your priorities, finds live channels and claims every drop. Check in whenever you like.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <h2>Install</h2>
+        <p class="sub">Runs anywhere Docker runs: a home server, a NAS, a Raspberry Pi.</p>
+        <div class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-tab="compose">Compose</button>
+          <button role="tab" aria-selected="false" data-tab="run">docker run</button>
+          <button role="tab" aria-selected="false" data-tab="unraid">Unraid</button>
+        </div>
+        <div class="panel" data-panel="compose"><pre><span class="c"># docker-compose.yml</span>
+services:
+  dropper:
+    image: ghcr.io/mki002/dropper-app:latest
+    container_name: Dropper
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data</pre></div>
+        <div class="panel" data-panel="run" hidden><pre>docker run -d --name Dropper --restart unless-stopped \
+  -p 8080:8080 -v "$(pwd)/data:/data" \
+  ghcr.io/mki002/dropper-app:latest</pre></div>
+        <div class="panel" data-panel="unraid" hidden><pre><span class="c"># Docker → Add Container</span>
+Repository:  ghcr.io/mki002/dropper-app:latest
+Port:        8080 → 8080
+Path:        /data → /mnt/user/appdata/dropper
+Variables:   PUID=99  PGID=100</pre></div>
+        <p class="note">Then open <code>http://&lt;server&gt;:8080</code> and enter the code it shows on twitch.tv/activate. Set <code>WEBUI_PASSWORD</code> to protect the web UI. More in the <a href="https://github.com/MKI002/dropper-app#readme">README</a>.</p>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap">
+        <h2>Questions</h2>
+        <div class="faq">
+          <details><summary>Does Dropper see my Twitch password?</summary><p>No. It uses Twitch's device login: you confirm a code on twitch.tv/activate while signed in to Twitch. Dropper keeps the resulting session in your data folder and nowhere else.</p></details>
+          <details><summary>Why one channel at a time?</summary><p>Twitch only counts drop progress for one stream per account at a time. Watching several streams would not make drops faster.</p></details>
+          <details><summary>What happens when a claim fails?</summary><p>Usually the game account is not linked yet. The Drops tab shows Twitch's reason with a link to connect the account, and Dropper retries on its own, right away once the account is linked.</p></details>
+          <details><summary>Is the demo connected to Twitch?</summary><p>No. The demo is the real web UI with a small simulation in your browser. Every game, streamer, stream and chat message in it is made up.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Dropper is open source under the MIT license. Not affiliated with or endorsed by Twitch.</span>
+      <span><a href="https://github.com/MKI002/dropper-app">GitHub</a> · <a href="demo/">Live demo</a></span>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll(".tabs button").forEach((btn) => btn.addEventListener("click", () => {
+      document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b === btn)));
+      document.querySelectorAll(".panel").forEach((p) => { p.hidden = p.dataset.panel !== btn.dataset.tab; });
+    }));
+  </script>
+</body>
+</html>

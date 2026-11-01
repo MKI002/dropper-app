@@ -19,14 +19,14 @@ CLIENT_ID = "ue6666qo983tsx6so1t0vnawi233wa"
 CLIENT_URL = "https://android.tv.twitch.tv"
 USER_AGENT = (
     "Mozilla/5.0 (Linux; Android 7.1; Smart Box C1) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+    "(KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
 )
 # scopes requested by the TV app during device login
 DEVICE_SCOPES = "channel_read chat:read user_blocks_edit user_blocks_read user_follows_edit user_read"
 # desktop browser identity, only used to load channel pages (spade URL lookup)
 BROWSER_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+    "(KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
 )
 
 GQL_URL = "https://gql.twitch.tv/gql"

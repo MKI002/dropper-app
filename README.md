@@ -12,7 +12,7 @@ A self-hosted Docker container that finds streams with active drops, watches the
 
 [![CI](https://github.com/MKI002/dropper-app/actions/workflows/ci.yml/badge.svg)](https://github.com/MKI002/dropper-app/actions/workflows/ci.yml)
 [![Docker image](https://github.com/MKI002/dropper-app/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MKI002/dropper-app/pkgs/container/dropper-app)
-[![License: MIT](https://img.shields.io/badge/license-MIT-9a5cff.svg)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-9a5cff.svg)](LICENSE)
 
 <a href="https://mki002.github.io/dropper-app/demo/"><img src="site/assets/overview.png" alt="Dropper overview: the stream being watched, the current drop and the campaign queue"></a>
 
@@ -178,4 +178,4 @@ The Twitch integration (Android TV client login, watch events, GQL operations) f
 
 ## License
 
-[MIT](LICENSE). Dropper is not affiliated with or endorsed by Twitch. Use it at your own risk and in line with Twitch's terms.
+Copyright © 2026 MKI002. Licensed under the [GNU AGPL-3.0](LICENSE). Dropper is not affiliated with or endorsed by Twitch. Use it at your own risk and in line with Twitch's terms.
